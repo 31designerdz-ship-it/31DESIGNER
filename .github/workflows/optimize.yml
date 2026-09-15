@@ -1,0 +1,31 @@
+name: Optimize GLB Files
+
+on:
+  workflow_dispatch:
+
+jobs:
+  compress:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - run: npm install -g @gltf-transform/cli
+
+      - name: Compress all GLB files
+        run: |
+          for f in *.glb; do
+            if [ -f "$f" ]; then
+              echo "Optimizing $f..."
+              gltf-transform optimize "$f" "$f" --compress draco
+            fi
+          done
+
+      - uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Optimized all 3D models"
