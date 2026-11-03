@@ -1,4 +1,4 @@
-name: Optimize Today GLB Files
+name: Optimize Last Week GLB Files
 
 on:
   workflow_dispatch:
@@ -11,7 +11,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # باش يشوف تاريخ الـ Commits تاع اليوم
+          fetch-depth: 0 # باش يشوف تاريخ الـ Commits القديمة
 
       - uses: actions/setup-node@v4
         with:
@@ -19,18 +19,18 @@ jobs:
 
       - run: npm install -g @gltf-transform/cli
 
-      - name: Compress only today's GLB files
+      - name: Compress last week's GLB files
         run: |
-          echo "Looking for GLB files modified today..."
-          # يجيب كاع ملفات .glb المرفوعة ولا المعدلة اليوم في Git
-          TODAY_FILES=$(git log --since="midnight" --name-only --pretty=format: | grep '\.glb$' | sort -u)
+          echo "Looking for GLB files modified in the last week..."
+          # يجيب كاع ملفات .glb المرفوعة ولا المعدلة في السمانة الأخيرة في Git
+          TODAY_FILES=$(git log --since="1 week ago" --name-only --pretty=format: | grep '\.glb$' | sort -u)
 
           if [ -z "$TODAY_FILES" ]; then
-            echo "No GLB files uploaded or modified today."
+            echo "No GLB files uploaded or modified in the last week."
           else
             echo "$TODAY_FILES" | while read -r f; do
               if [ -f "$f" ]; then
-                echo "Optimizing today's file: $f"
+                echo "Optimizing file: $f"
                 gltf-transform optimize "$f" "$f" --compress draco || true
               fi
             done
@@ -39,4 +39,4 @@ jobs:
       - name: Commit changes
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "Optimized today's 3D models"
+          commit_message: "Optimized last week's 3D models"
